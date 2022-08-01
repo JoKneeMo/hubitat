@@ -3,7 +3,7 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 0.1.0
+ *  Version: 0.1.1
 */
 
 metadata {
@@ -203,7 +203,13 @@ def blockService(services_string) {
     List<String> currentBlocks_list = device.currentValue("blockedServices").toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
     logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
-    def postBlockList = currentBlocks_list + services_list
+    def postBlockList = []
+    if ("${currentBlocks_list[0]}" != "") {
+        def dedupBlockList = services_list - currentBlocks_list
+        postBlockList += currentBlocks_list + dedupBlockList
+    } else {
+        postBlockList += services_list
+    }
     logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
 
     doHttpPostJson("/blocked_services/set", postBlockList)
