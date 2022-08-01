@@ -1,4 +1,13 @@
 {
   "author": "JoKneeMo <https://github.com/JoKneeMo>",
-  "gitHubUrl": "https://github.com/JoKneeMo/hubitat"
+  "gitHubUrl": "https://github.com/JoKneeMo/hubitat",
+  "packages": [
+    {
+      "id": "dfb3d284-d3d3-48b7-b2d7-99260d533332",
+      "name": "AdGuard Home DNS Manager (Unofficial)",
+      "category": "Integrations",
+      "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/packageManifest.json",
+      "description": "App and Driver to control AdGuard Home DNS Servers and Clients"
+    }
+  ]
 }
