@@ -14,7 +14,7 @@ definition(
     namespace: "adguard-home",
     author: "JoKneeMo",
     description: "Manages AdGuard Home servers and allows client control",
-    category: "Dashboard",
+    category: "Integrations",
     iconUrl: "",
     iconX2Url: "",
     singleInstance: true

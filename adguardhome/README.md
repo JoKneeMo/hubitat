@@ -8,12 +8,12 @@ A main application allows creation of multiple servers within Hubitat, and the c
 
 ## Application ##
 
-- [AdGuardHome_App.groovy](https://github.com/JoKneeMo/hubitat/adguardhome/blob/master/app/AdGuardHome_App.groovy) - Not required but makes managing multiple servers easier
+- [AdGuardHome_App.groovy](https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/app/AdGuardHome_App.groovy) - Not required but makes managing multiple servers easier
 
 ## Main Driver ##
 
-- [adGuardHome_Server.groovy](https://github.com/JoKneeMo/hubitat/adguardhome/blob/master/drivers/AdGuardHome_Server.groovy) - Required, this is the server device and handles the authentication and communication for each server.
+- [adGuardHome_Server.groovy](https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/drivers/AdGuardHome_Server.groovy) - Required, this is the server device and handles the authentication and communication for each server.
 
 ## Client Drivers ##
 
-- [adGuardHome_Client.groovy](https://github.com/JoKneeMo/hubitat/adguardhome/blob/master/drivers/AdGuardHome_Client.groovy) - Not required, this is the client device and is only needed if you want to manage individual client settings.
+- [adGuardHome_Client.groovy](https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/drivers/AdGuardHome_Client.groovy) - Not required, this is the client device and is only needed if you want to manage individual client settings.

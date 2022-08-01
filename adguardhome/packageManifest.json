@@ -1,0 +1,34 @@
+{
+  "packageName": "AdGuard Home DNS Manager (Unofficial)",
+  "author": "JoKneeMo <https://github.com/JoKneeMo>",
+  "version": "0.1.0",
+  "minimumHEVersion": "2.3.0",
+  "dateReleased": "2022-08-01",
+  "apps": [
+    {
+      "id": "02b5cb12-e41e-4a56-9989-e1e81162f26a",
+      "name": "AdGuard Home Manager",
+      "namespace": "adguard-home",
+      "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/app/AdGuardHome_App.groovy",
+      "required": true,
+      "oauth": false,
+      "primary": true
+    }
+  ],
+  "drivers": [
+    {
+      "id": "1c82184e-1570-4682-b17a-f5a58baa5f42",
+      "name": "AdGuard Home DNS Server",
+      "namespace": "JoKneeMo",
+      "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/drivers/AdGuardHome_Server.groovy",
+      "required": true
+    },
+    {
+      "id": "8860f7f1-cbb2-4c08-b9e1-0a4d63bfa8bb",
+      "name": "AdGuard Home DNS Client",
+      "namespace": "JoKneeMo",
+      "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/drivers/AdGuardHome_Client.groovy",
+      "required": false
+    }
+  ]
+}
