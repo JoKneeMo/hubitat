@@ -3,7 +3,7 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 0.1.0
+ *  Version: 1.0.0
 */
 
 import groovyx.net.http.ContentType
@@ -97,15 +97,15 @@ def addServer() {
 def configureServer(params) {
     if (params?.did || params?.params?.did) {
         if (params.did) {
-        state.currentDeviceId = params.did
-        state.currentDisplayName = getChildDevice(params.did)?.displayName
+            state.currentDeviceId = params.did
+            state.currentDisplayName = getChildDevice(params.did)?.displayName
         }
         else {
-        state.currentDeviceId = params.params.did
-        state.currentDisplayName = getChildDevice(params.params.did)?.displayName
+            state.currentDeviceId = params.params.did
+            state.currentDisplayName = getChildDevice(params.params.did)?.displayName
         }
     }
-    if (getChildDevice(state.currentDeviceId) != null) getChildDevice(state.currentDeviceId).configure()
+    if (getChildDevice(state.currentDeviceId) != null) getChildDevice(state.currentDeviceId).refresh()
     dynamicPage(name: "configureServer", title: "<h2>Configure Existing AdGuard Home DNS Servers</h2>", nextPage: "mainPage") {
         if (state.currentDeviceId.startsWith(AGH_API_DNI)) {
             section {
@@ -123,10 +123,18 @@ def configureServer(params) {
         }
 
         section("<h3>DNS Server Details</h3>") {
-            paragraph("<strong>Connection Status: </strong>" + getChildDevice(state.currentDeviceId).currentState("commStatus").value + "\n"
-                + "<strong>IP Address: </strong>" + getChildDevice(state.currentDeviceId).getSetting("serverIP").value + "\n"
+            paragraph("<strong>IP Address: </strong>" + getChildDevice(state.currentDeviceId).getSetting("serverIP").value + "\n"
                 + "<strong>Username: </strong>" + getChildDevice(state.currentDeviceId).getSetting("username").value + "\n"
+                + "<strong>Version: </strong>" + getChildDevice(state.currentDeviceId).currentValue("version").value + "\n"
+                + "<strong>Protection: </strong>" + getChildDevice(state.currentDeviceId).currentValue("protection").value + "\n"
+                + "<strong>Filtering: </strong>" + getChildDevice(state.currentDeviceId).currentValue("filtering").value + "\n"
+                + "<strong>Parental Control: </strong>" + getChildDevice(state.currentDeviceId).currentValue("parental").value + "\n"
+                + "<strong>Safe Browsing: </strong>" + getChildDevice(state.currentDeviceId).currentValue("safeBrowsing").value + "\n"
+                + "<strong>Safe Search: </strong>" + getChildDevice(state.currentDeviceId).currentValue("safeSearch").value + "\n"
+                + "<strong>DHCP Server: </strong>" + getChildDevice(state.currentDeviceId).currentValue("dhcp").value + "\n"
+                + "<strong>Blocked Services: </strong>" + getChildDevice(state.currentDeviceId).currentValue("blockedServices").value + "\n"
                 + "<strong>Debug Logging: </strong>" + getChildDevice(state.currentDeviceId).getSetting("logDebug").value + "\n"
+                + "<strong>Trace Logging: </strong>" + getChildDevice(state.currentDeviceId).getSetting("logTrace").value + "\n"
                 + "<strong>Last Activity At: </strong>" + getChildDevice(state.currentDeviceId).getLastActivity().toString()
             )
         }
@@ -189,31 +197,19 @@ def changeName() {
 
 def createServerChildren() {
     def thisDevice = getChildDevice(state.currentDeviceId)
-    def connectionStatus = thisDevice.currentState("commStatus").value
-
-    if ("${connectionStatus}" == "good") {
-        try {
-            thisDevice.createChildDevices()
-            dynamicPage(name: "createServerChildren", title: "<h2>Create Child Devices</h2>", nextPage: "configureServer") {
-                section {
-                    paragraph("The child devices have been created. Press \"Next\" to continue")
-                }
-            }
-        }
-        catch (e) {
-            dynamicPage(name: "createServerChildren", title: "<h2>Failed to Create Child Devices</h2>", nextPage: "configureServer") {
-                section {
-                    paragraph("The child devices could not be created.")
-                    paragraph("Error: ${(e as String).split(": ")[1]}.")
-                }
-            }
-        }
-        
-    }
-    else {
-        dynamicPage(name: "createServerChildren", title: "<h2>DNS Server is not connected</h2>", nextPage: "configureServer") {
+    try {
+        thisDevice.createChildDevices()
+        dynamicPage(name: "createServerChildren", title: "<h2>Create Child Devices</h2>", nextPage: "configureServer") {
             section {
-                paragraph("The server is not connected. Correct the connection between Hubitat and the AdGuard Home DNS server, then try again.")
+                paragraph("The child devices have been created. Press \"Next\" to continue")
+            }
+        }
+    }
+    catch (e) {
+        dynamicPage(name: "createServerChildren", title: "<h2>Failed to Create Child Devices</h2>", nextPage: "configureServer") {
+            section {
+                paragraph("The child devices could not be created.")
+                paragraph("Error: ${(e as String).split(": ")[1]}.")
             }
         }
     }

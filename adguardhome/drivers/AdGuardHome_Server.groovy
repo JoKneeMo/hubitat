@@ -3,7 +3,7 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 0.1.1
+ *  Version: 1.0.0
 */
 
 metadata {
@@ -60,7 +60,7 @@ def initialize() {
 def refresh() {
     logDebug "DNS Server Polling..."
     if (serverIP == null) {
-        logDebug "Server IP/FQDN not entered in preferences"
+        logError "Server IP/FQDN not entered in preferences"
         return
     }
     getStatus()
@@ -198,9 +198,9 @@ def SafeSearchOff() {
 }
 
 def blockService(services_string) {
-    List<String> services_list = services_string.split("\\s*,\\s*")
+    List<String> services_list = convertMapString(services_string)
     logDebug "Blocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = device.currentValue("blockedServices").toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
+    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
     logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
     def postBlockList = []
@@ -217,9 +217,9 @@ def blockService(services_string) {
 }
 
 def unblockService(services_string) {
-    List<String> services_list = services_string.split("\\s*,\\s*")
+    List<String> services_list = convertMapString(services_string)
     logDebug "Unblocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = device.currentValue("blockedServices").toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
+    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
     logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
     def postBlockList = currentBlocks_list - services_list
@@ -234,39 +234,58 @@ def unblockService(services_string) {
 def getClients() {
     logDebug "Getting Clients...."
     def respValues = doHttpGet("/clients", null)
+    logTrace "Clients Response: ${respValues.clients}"
     return respValues
 }
 
 def createChildDevices() {
-    getClients().clients?.each {
-        if((it.name && it.ids[0]) && !findChildDevice(it.id[0], "client")) {
-            createChildDevice(it.name, it.id, "client")
+    (getClients()?.clients)?.each {
+        if((it.name && it.ids[0]) && !findChildDevice(it.ids[0], "client")) {
+            createChildDevice(it.name, it.ids, "client")
+        } else {
+            logTrace "Client Already Exists: ${it.name} | ${it.ids[0]}"
         }
     }
 }
 
-def createChildDevice(name, id, deviceType) {
+def createChildDevice(name, ids, deviceType) {
     def child
         try {
             switch(deviceType.toString()) {
                 case "client":
-                    addChildDevice("AdGuard Home DNS Client", childDni(id, deviceType), [name: childName(name, deviceType), label: childName(name, deviceType), isComponent: false])
+                    logDebug "Creating New Client: ${name} | ${ids[0]}"
+                    newChild = addChildDevice("AdGuard Home DNS Client", childDNI(ids[0], deviceType), [name: childName(name, deviceType), label: childName(name, deviceType), isComponent: false])
+                    newChild.parentEvent("clientIds", ids)
+                    pauseExecution(1000)
+                    newChild.refresh()
                     break
                 default:
-                    logDebug("deviceType is not specified or is unsupported")
+                    logDebug "deviceType is not specified or is unsupported"
             }
         }
         catch (Exception e) {
-            logDebug("Child Device Creation Failed: ${e.message}")
+            logError "Child Device Creation Failed: ${e.message}"
         }
 }
 
 def deleteChildDevices() {
+    logInfo "Deleting all child devices...."
     for(child in getChildDevices()) {
         deleteChildDevice(child.deviceNetworkId)
     }
 }
 
+def childName(name, deviceType) {
+    return "DNS ${deviceType.toString().toUpperCase()} | ${name.toString()}"
+}
+
+def findChildDevice(id, deviceType) {
+    return getChildDevice(childDNI(id, deviceType))
+}
+
+def childDNI(id, deviceType) {
+    return "AGH_${deviceType.toString().toUpperCase()}|${id.toString()}"
+}
 
 // General Functions
 def doHttpGet(endpoint,bodyData) {
@@ -334,6 +353,10 @@ def getDefaultHeaders() {
 
     logTrace "Headers: ${headers}"
     return headers
+}
+
+def convertMapString(map) {
+    return map.toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
 }
 
 //logging help methods

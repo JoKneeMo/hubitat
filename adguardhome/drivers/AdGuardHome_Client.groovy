@@ -3,17 +3,17 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 0.1.0
+ *  Version: 1.0.0
 */
+
+import groovy.json.JsonOutput
 
 metadata {
     definition(name: "AdGuard Home DNS Client", namespace: "JoKneeMo", author: "JoKneeMo", importUrl: "") {
-        capability "Initialize"
         capability "Refresh"
-        command "initialize"
         command "refresh"
-        command "ProtectionOn"
-        command "ProtectionOff"
+        command "GlobalSettingsOn"
+        command "GlobalSettingsOff"
         command "FilteringOn"
         command "FilteringOff"
         command "ParentalControlOn"
@@ -22,13 +22,18 @@ metadata {
         command "SafeBrowsingOff"
         command "SafeSearchOn"
         command "SafeSearchOff"
+        command "GlobalBlockListOn"
+        command "GlobalBlockListOff"
         command "blockService", ["String"]
         command "unblockService", ["String"]
+        attribute "name", "string"
         attribute "filtering", "bool"
         attribute "parental", "bool"
         attribute "safeBrowsing", "bool"
         attribute "safeSearch", "bool"
         attribute "blockedServices", "string"
+        attribute "use_global_blocked_services", "bool"
+        attribute "use_global_settings", "bool"
         attribute "clientIds", "string"
         attribute "clientTags", "string"
     }
@@ -36,293 +41,193 @@ metadata {
 
 preferences {
     section {
-        input name: "serverIP", type: "text", title: "Server IP Address", required: true
-        input name: "username", type: "text", title: "Username", required: true
-        input name: "password", type: "password", title: "Password", required: true
-        input name: "tlsEnable", type: "bool", title: "TLS Connection", defaultValue: false
-    }
-    section {
         input name: "logDebug", type: "bool", title: "Enable debug logging", defaultValue: false
         input name: "logTrace", type: "bool", title: "Enable trace logging", defaultValue: false
     }
 }
 
-def initialize() {
-    refresh()
-    //runEvery5Minutes("refresh")
-}
-
 def refresh() {
-    logDebug "DNS Server Polling..."
-    if (serverIP == null) {
-        logDebug "Server IP/FQDN not entered in preferences"
-        return
-    }
+    logDebug "DNS Client Polling..."
     getStatus()
-    getFiltering()
-    getDHCP()
-    getSafeBrowsing()
-    getSafeSearch()
-    getParental()
-    getBlockedServices()
 }
 
-// State Collectors
+def formatMap() {
+    def attribMap = [
+            name: (device.currentValue("name")),
+            data: [
+                name: (device.currentValue("name")),
+                filtering_enabled: (device.currentValue("filtering").toBoolean()),
+                parental_enabled: (device.currentValue("parental").toBoolean()),
+                safebrowsing_enabled: (device.currentValue("safeBrowsing").toBoolean()),
+                safesearch_enabled: (device.currentValue("safeSearch").toBoolean()),
+                use_global_blocked_services: (device.currentValue("use_global_blocked_services").toBoolean()),
+                use_global_settings: (device.currentValue("use_global_settings").toBoolean()),
+                tags: (convertMapString(device.currentValue("clientTags"))),
+                ids: (convertMapString(device.currentValue("clientIds"))),
+                blocked_services: (convertMapString(device.currentValue("blockedServices")))
+            ]
+        ]
+    return attribMap
+}
+
+
+// State Collector
 def getStatus() {
-    logDebug "Getting Status...."
-    def respValues = doHttpGet("/status", null)
-    sendEvent(name: "version", value: respValues.version)
-    sendEvent(name: "protection", value: respValues.protection_enabled)
-}
-
-def getFiltering() {
-    logDebug "Getting Filtering...."
-    def respValues = doHttpGet("/filtering/status", null)
-    sendEvent(name: "filtering", value: respValues.enabled)
-}
-
-def getDHCP() {
-    logDebug "Getting DHCP...."
-    def respValues = doHttpGet("/dhcp/status", null)
-    sendEvent(name: "dhcp", value: respValues.enabled)
-}
-
-def getSafeBrowsing() {
-    logDebug "Getting SafeBrowsing...."
-    def respValues = doHttpGet("/safebrowsing/status", null)
-    sendEvent(name: "safeBrowsing", value: respValues.enabled)
-}
-
-def getSafeSearch() {
-    logDebug "Getting SafeSearch...."
-    def respValues = doHttpGet("/safesearch/status", null)
-    sendEvent(name: "safeSearch", value: respValues.enabled)
-}
-
-def getParental() {
-    logDebug "Getting Parental...."
-    def respValues = doHttpGet("/parental/status", null)
-    sendEvent(name: "parental", value: respValues.enabled)
-}
-
-def getBlockedServices() {
-    logDebug "Getting Blocked Services...."
-    def respValues = doHttpGet("/blocked_services/list", null)
-    sendEvent(name: "blockedServices", value: respValues)
+    logDebug "Getting Client Status...."
+    List<String> currentIds = convertMapString(device.currentValue("clientIds"))
+    def respValuesMap = parent.doHttpGet("/clients/find?ip0=${currentIds[0]}", null)
+    def mapID = currentIds[0].toString()
+    def respValues = respValuesMap["$mapID"][0]
+    logDebug "Client Response: ${respValues}"
+    sendEvent(name: "name", value: respValues.name)
+    sendEvent(name: "use_global_settings", value: respValues.use_global_settings)
+    sendEvent(name: "use_global_blocked_services", value: respValues.use_global_blocked_services)
+    sendEvent(name: "filtering", value: respValues.filtering_enabled)
+    sendEvent(name: "parental", value: respValues.parental_enabled)
+    sendEvent(name: "safeBrowsing", value: respValues.safebrowsing_enabled)
+    sendEvent(name: "safeSearch", value: respValues.safesearch_enabled)
+    sendEvent(name: "blockedServices", value: respValues.blocked_services)
+    sendEvent(name: "clientIds", value: respValues.ids)
+    sendEvent(name: "clientTags", value: respValues.tags)
 }
 
 
 // State Controls
-def ProtectionOn() {
-    logDebug "Enabling Protection...."
-    httpPayload = [protection_enabled: true]
-    doHttpPostJson("/dns_config", httpPayload)
-    getStatus()
+def GlobalSettingsOn() {
+    logDebug "Enabling Gloabl Settings for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.use_global_settings = true
+    updateClient(clientAttribs)
 }
 
-def ProtectionOff() {
-    logDebug "Disabling Protection...."
-    httpPayload = [protection_enabled: false]
-    doHttpPostJson("/dns_config", httpPayload)
-    getStatus()
+def GlobalSettingsOff() {
+    logDebug "Disabling Gloabl Settings for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.use_global_settings = false
+    updateClient(clientAttribs)
 }
 
 def FilteringOn() {
-    logDebug "Enabling Filtering...."
-    httpPayload = [enabled: true, interval: 24]
-    doHttpPostJson("/filtering/config", httpPayload)
-    getFiltering()
+    logDebug "Enabling Filtering for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.filtering_enabled = true
+    updateClient(clientAttribs)
 }
 
 def FilteringOff() {
-    logDebug "Disabling Filtering...."
-    httpPayload = [enabled: false, interval: 24]
-    doHttpPostJson("/filtering/config", httpPayload)
-    getFiltering()
-}
-
-def DhcpOn() {
-    logDebug "Enabling DHCP...."
-    httpPayload = [enabled: true]
-    doHttpPostJson("/dhcp/set_config", httpPayload)
-    getDHCP()
-}
-
-def DhcpOff() {
-    logDebug "Disabling DHCP...."
-    httpPayload = [enabled: false]
-    doHttpPostJson("/dhcp/set_config", httpPayload)
-    getDHCP()
+    logDebug "Disabling Filtering for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.filtering_enabled = false
+    updateClient(clientAttribs)
 }
 
 def ParentalControlOn() {
-    logDebug "Enabling Parental Control...."
-    httpPayload = [sensitivity: "TEEN"]
-    doHttpPostJson("/parental/enable", httpPayload)
-    getParental()
+    logDebug "Enabling Parental Control for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.parental_enabled = true
+    updateClient(clientAttribs)
 }
 
 def ParentalControlOff() {
-    logDebug "Disabling Parental Control...."
-    doHttpPostJson("/parental/disable", "")
-    getParental()
+    logDebug "Disabling Parental Control for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.parental_enabled = false
+    updateClient(clientAttribs)
 }
 
 def SafeBrowsingOn() {
-    logDebug "Enabling SafeBrowsing...."
-    doHttpPostJson("/safebrowsing/enable", "")
-    getSafeBrowsing()
+    logDebug "Enabling SafeBrowsing for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.safebrowsing_enabled = true
+    updateClient(clientAttribs)
 }
 
 def SafeBrowsingOff() {
-    logDebug "Disabling SafeBrowsing...."
-    doHttpPostJson("/safebrowsing/disable", "")
-    getSafeBrowsing()
+    logDebug "Disabling SafeBrowsing for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.safebrowsing_enabled = false
+    updateClient(clientAttribs)
 }
 
 def SafeSearchOn() {
-    logDebug "Enabling SafeSearch...."
-    doHttpPostJson("/safesearch/enable", "")
-    getSafeSearch()
+    logDebug "Enabling SafeSearch for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.safesearch_enabled = true
+    updateClient(clientAttribs)
 }
 
 def SafeSearchOff() {
-    logDebug "Disabling SafeSearch...."
-    doHttpPostJson("/safesearch/disable", "")
-    getSafeSearch()
+    logDebug "Disabling SafeSearch for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.safesearch_enabled = false
+    updateClient(clientAttribs)
+}
+
+def GlobalBlockListOn() {
+    logDebug "Enabling Gloabl Block List for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.use_global_blocked_services = true
+    updateClient(clientAttribs)
+}
+
+def GlobalBlockListOff() {
+    logDebug "Disabling Gloabl Block List for client...."
+    clientAttribs = formatMap()
+    clientAttribs.data.use_global_blocked_services = false
+    updateClient(clientAttribs)
 }
 
 def blockService(services_string) {
-    List<String> services_list = services_string.split("\\s*,\\s*")
+    List<String> services_list = convertMapString(services_string)
     logDebug "Blocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = device.currentValue("blockedServices").toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
+    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
     logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
-    def postBlockList = currentBlocks_list + services_list
+    def postBlockList = []
+    if ("${currentBlocks_list[0]}" != "") {
+        def dedupBlockList = services_list - currentBlocks_list
+        postBlockList += currentBlocks_list + dedupBlockList
+    } else {
+        postBlockList += services_list
+    }
     logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
 
-    doHttpPostJson("/blocked_services/set", postBlockList)
-    getBlockedServices()
+    clientAttribs = formatMap()
+    clientAttribs.data.blocked_services = postBlockList
+    updateClient(clientAttribs)
 }
 
 def unblockService(services_string) {
-    List<String> services_list = services_string.split("\\s*,\\s*")
+    List<String> services_list = convertMapString(services_string)
     logDebug "Unblocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = device.currentValue("blockedServices").toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
+    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
     logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
     def postBlockList = currentBlocks_list - services_list
     logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
 
-    doHttpPostJson("/blocked_services/set", postBlockList)
-    getBlockedServices()
+    clientAttribs = formatMap()
+    clientAttribs.data.blocked_services = postBlockList
+    updateClient(clientAttribs)
 }
 
-
-// Client Controls
-def getClients() {
-    logDebug "Getting Clients...."
-    def respValues = doHttpGet("/clients", null)
-    return respValues
-}
-
-def createChildDevices() {
-    getClients().clients?.each {
-        if((it.name && it.ids[0]) && !findChildDevice(it.id[0], "client")) {
-            createChildDevice(it.name, it.id, "client")
-        }
-    }
-}
-
-def createChildDevice(name, id, deviceType) {
-    def child
-        try {
-            switch(deviceType.toString()) {
-                case "client":
-                    addChildDevice("AdGuard Home DNS Client", childDni(id, deviceType), [name: childName(name, deviceType), label: childName(name, deviceType), isComponent: false])
-                    break
-                default:
-                    logDebug("deviceType is not specified or is unsupported")
-            }
-        }
-        catch (Exception e) {
-            logDebug("Child Device Creation Failed: ${e.message}")
-        }
-}
-
-def deleteChildDevices() {
-    for(child in getChildDevices()) {
-        deleteChildDevice(child.deviceNetworkId)
-    }
-}
 
 
 // General Functions
-def doHttpGet(endpoint,bodyData) {
-    logDebug "Getting ${endpoint}...."
-    def httpParams = [
-        uri: "${getBaseURI()}${endpoint}",
-        ignoreSSLIssues: true,
-        headers: getDefaultHeaders(),
-        body : "${bodyData}"
-    ]
-    try {
-        logTrace "HTTP Params: ${httpParams}"
-        httpGet(httpParams) { resp ->
-            logTrace "Response Data: ${resp.getData().toString()}"
-            def respValues = resp.getData()
-            return respValues
-        }
-    } catch(Exception e) {
-        logError "HTTP Error: ${e}"
-    }
+def parentEvent(attrib_name, attrib_value) {
+    logTrace "Updating Attribute ${attrib_name}: ${attrib_value}"
+    sendEvent(name: attrib_name, value: attrib_value)
 }
 
-def doHttpPostJson(endpoint,bodyData) {
-    logDebug "Posting to ${endpoint}...."
-    def httpParams = [
-        uri: "${getBaseURI()}${endpoint}",
-        ignoreSSLIssues: true,
-        headers: getDefaultHeaders(),
-        body : bodyData
-    ]
-    try {
-        logTrace "HTTP Params: ${httpParams}"
-        httpPostJson(httpParams) { resp ->
-            logTrace "Response Data: ${resp.getData().toString()}"
-            def respValues = resp.getData()
-            return respValues
-        }
-    } catch(Exception e) {
-        logError "HTTP Error: ${e}"
-    }
+def updateClient(postMap) {
+    logTrace "Sending client update...."
+    parent.doHttpPostJson("/clients/update", postMap)
+    pauseExecution(1000)
+    getStatus()
 }
 
-def getBaseURI() {
-    if (tlsEnable) {
-        baseProtocol = "https://"
-    } else {
-        baseProtocol = "http://"
-    }
-
-    baseURI = "${baseProtocol}${serverIP}/control"
-    
-    logTrace "Base URI: ${baseURI.toString()}"
-    return baseURI.toString()
-}
-
-def getDefaultHeaders() {
-    def headers = [:]
-    headers.put("Accept-Encoding", "gzip, deflate, br")
-    headers.put("Connection", "keep-alive")
-    headers.put("Accept", "application/json, text/plain, */*")
-    headers.put("Content-type", "application/json; charset=UTF-8")
-    headers.put("User-Agent", "Hubitat")
-    authString="${username}:${password}"
-    headers.put("Authorization", "Basic ${authString.bytes.encodeBase64().toString()}")
-
-    logTrace "Headers: ${headers}"
-    return headers
+def convertMapString(map) {
+    return map.toString().replaceAll("\\[|\\]", "").split("\\s*,\\s*")
 }
 
 //logging help methods

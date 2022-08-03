@@ -1,9 +1,12 @@
 {
   "packageName": "AdGuard Home DNS Manager (Unofficial)",
   "author": "JoKneeMo <https://github.com/JoKneeMo>",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minimumHEVersion": "2.3.0",
-  "dateReleased": "2022-08-01",
+  "dateReleased": "2022-08-02",
+  "licenseFile": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/LICENSE",
+  "documentationLink": "https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/README.md",
+  "releaseNotes": "1.0.0 - Initial public release\n0.1.0 - Initial alpha release.",
   "apps": [
     {
       "id": "02b5cb12-e41e-4a56-9989-e1e81162f26a",
