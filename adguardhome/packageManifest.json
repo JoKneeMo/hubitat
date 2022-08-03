@@ -6,6 +6,7 @@
   "dateReleased": "2022-08-02",
   "licenseFile": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/LICENSE",
   "documentationLink": "https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/README.md",
+  "communityLink": "https://community.hubitat.com/t/release-adguard-home-dns-server-and-client-manager",
   "releaseNotes": "1.0.0 - Initial public release\n0.1.0 - Initial alpha release.",
   "apps": [
     {
