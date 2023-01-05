@@ -3,7 +3,14 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 1.0.0
+ *  Version: 1.0.1
+
+-------------------------------------------
+
+Change history:
+
+1.0.1 - JoKneeMo - Fix unsupported media type error
+1.0.0 - JoKneeMo - Initial release
 */
 
 metadata {
@@ -346,7 +353,7 @@ def getDefaultHeaders() {
     headers.put("Accept-Encoding", "gzip, deflate, br")
     headers.put("Connection", "keep-alive")
     headers.put("Accept", "application/json, text/plain, */*")
-    headers.put("Content-type", "application/json; charset=UTF-8")
+    headers.put("Content-type", "application/json")
     headers.put("User-Agent", "Hubitat")
     authString="${username}:${password}"
     headers.put("Authorization", "Basic ${authString.bytes.encodeBase64().toString()}")

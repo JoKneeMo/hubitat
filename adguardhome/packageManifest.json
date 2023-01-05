@@ -1,13 +1,13 @@
 {
   "packageName": "AdGuard Home DNS Manager (Unofficial)",
   "author": "JoKneeMo <https://github.com/JoKneeMo>",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minimumHEVersion": "2.3.0",
-  "dateReleased": "2022-08-02",
+  "dateReleased": "2023-01-05",
   "licenseFile": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/LICENSE",
   "documentationLink": "https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/README.md",
   "communityLink": "https://community.hubitat.com/t/release-adguard-home-dns-server-and-client-manager",
-  "releaseNotes": "1.0.0 - Initial public release\n0.1.0 - Initial alpha release.",
+  "releaseNotes": "1.0.1 - [Driver-Server] Fix unsupported media type error\n1.0.0 - Initial public release\n0.1.0 - Initial alpha release.",
   "apps": [
     {
       "id": "02b5cb12-e41e-4a56-9989-e1e81162f26a",
@@ -16,7 +16,8 @@
       "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/app/AdGuardHome_App.groovy",
       "required": true,
       "oauth": false,
-      "primary": true
+      "primary": true,
+      "version": "1.0.0"
     }
   ],
   "drivers": [
@@ -25,14 +26,16 @@
       "name": "AdGuard Home DNS Server",
       "namespace": "JoKneeMo",
       "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/drivers/AdGuardHome_Server.groovy",
-      "required": true
+      "required": true,
+      "version": "1.0.1"
     },
     {
       "id": "8860f7f1-cbb2-4c08-b9e1-0a4d63bfa8bb",
       "name": "AdGuard Home DNS Client",
       "namespace": "JoKneeMo",
       "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/drivers/AdGuardHome_Client.groovy",
-      "required": false
+      "required": false,
+      "version": "1.0.0"
     }
   ]
 }
