@@ -8,6 +8,13 @@
       "category": "Integrations",
       "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/packageManifest.json",
       "description": "App and Driver to control AdGuard Home DNS Servers and Clients"
+    },
+    {
+      "id": "eaf672c1-2a83-4e30-a4bb-1e6c28937428",
+      "name": "Ubiquiti UniFi Controller Manager",
+      "category": "Integrations",
+      "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/unificontroller/packageManifest.json",
+      "description": "App and Drivers to control Ubiquiti UniFi Controllers, and to serve UniFi Protect camera snapshots."
     }
   ]
 }
