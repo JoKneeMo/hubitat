@@ -3,12 +3,14 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 1.0.1
+ *  Version: 1.1.0
 
 -------------------------------------------
 
 Change history:
 
+1.1.0 - JoKneeMo - Added ability to create a single client
+                 - Fix "null" value from being added to block lists
 1.0.1 - JoKneeMo - Fix unsupported media type error
 1.0.0 - JoKneeMo - Initial release
 */
@@ -20,6 +22,7 @@ metadata {
         command "initialize"
         command "refresh"
         command "createChildDevices"
+        command "createSingleChild", ["String"]
         command "deleteChildDevices"
         command "ProtectionOn"
         command "ProtectionOff"
@@ -120,6 +123,7 @@ def getParental() {
 def getBlockedServices() {
     logDebug "Getting Blocked Services...."
     def respValues = doHttpGet("/blocked_services/list", null)
+    respValues.remove("null")
     sendEvent(name: "blockedServices", value: respValues)
 }
 
@@ -206,34 +210,46 @@ def SafeSearchOff() {
 
 def blockService(services_string) {
     List<String> services_list = convertMapString(services_string)
-    logDebug "Blocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
-    logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
+    services_list.remove("null")
+    if(services_list.size() >= 1) {
+        logDebug "Blocking ${services_list.size()} Service(s): ${services_list}..."
+        List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
+        logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
-    def postBlockList = []
-    if ("${currentBlocks_list[0]}" != "") {
-        def dedupBlockList = services_list - currentBlocks_list
-        postBlockList += currentBlocks_list + dedupBlockList
+        def postBlockList = []
+        if ("${currentBlocks_list[0]}" != "") {
+            def dedupBlockList = services_list - currentBlocks_list
+            postBlockList += currentBlocks_list + dedupBlockList
+        } else {
+            postBlockList += services_list
+        }
+        postBlockList.remove("null")
+        logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
+
+        doHttpPostJson("/blocked_services/set", postBlockList)
+        getBlockedServices()
     } else {
-        postBlockList += services_list
+        logError "No new services to block [${services_list.toString}]"
     }
-    logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
-
-    doHttpPostJson("/blocked_services/set", postBlockList)
-    getBlockedServices()
 }
 
 def unblockService(services_string) {
     List<String> services_list = convertMapString(services_string)
-    logDebug "Unblocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
-    logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
+    services_list.remove("null")
+    if(services_list.size() >= 1) {
+        logDebug "Unblocking ${services_list.size()} Service(s): ${services_list}..."
+        List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
+        logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
-    def postBlockList = currentBlocks_list - services_list
-    logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
+        def postBlockList = currentBlocks_list - services_list
+        postBlockList.remove("null")
+        logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
 
-    doHttpPostJson("/blocked_services/set", postBlockList)
-    getBlockedServices()
+        doHttpPostJson("/blocked_services/set", postBlockList)
+        getBlockedServices()
+    } else {
+        logError "No new services to unblock [${services_list.toString}]"
+    }
 }
 
 
@@ -252,6 +268,21 @@ def createChildDevices() {
         } else {
             logTrace "Client Already Exists: ${it.name} | ${it.ids[0]}"
         }
+    }
+}
+
+def createSingleChild(id) {
+    logDebug "Adding Single Client [${id}]...."
+    def clientQuery = doHttpGet("/clients/find?ip0=${id}", null)["${id}"][0]
+    logTrace "Client Query Response: ${clientQuery}"
+    if(clientQuery.name != "") {
+        if(!findChildDevice(clientQuery.ids[0], "client")) {
+            createChildDevice(clientQuery.name, clientQuery.ids, "client")
+        } else {
+            logError "Client Already Exists: ${it.name} | ${it.ids[0]}"
+        }
+    } else {
+        logError "Client with ID ${id} does not exist on server."
     }
 }
 

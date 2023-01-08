@@ -3,7 +3,14 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 1.0.0
+ *  Version: 1.1.0
+
+-------------------------------------------
+
+Change history:
+
+1.1.0 - JoKneeMo - Fix "null" value from being added to block lists
+1.0.0 - JoKneeMo - Initial release
 */
 
 import groovy.json.JsonOutput
@@ -86,6 +93,7 @@ def getStatus() {
     sendEvent(name: "parental", value: respValues.parental_enabled)
     sendEvent(name: "safeBrowsing", value: respValues.safebrowsing_enabled)
     sendEvent(name: "safeSearch", value: respValues.safesearch_enabled)
+    respValues.blocked_services.remove("null")
     sendEvent(name: "blockedServices", value: respValues.blocked_services)
     sendEvent(name: "clientIds", value: respValues.ids)
     sendEvent(name: "clientTags", value: respValues.tags)
@@ -179,38 +187,49 @@ def GlobalBlockListOff() {
 
 def blockService(services_string) {
     List<String> services_list = convertMapString(services_string)
-    logDebug "Blocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
-    logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
+    services_list.remove("null")
+    if(services_list.size() >= 1) {
+        logDebug "Blocking ${services_list.size()} Service(s): ${services_list}..."
+        List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
+        logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
-    def postBlockList = []
-    if ("${currentBlocks_list[0]}" != "") {
-        def dedupBlockList = services_list - currentBlocks_list
-        postBlockList += currentBlocks_list + dedupBlockList
+        def postBlockList = []
+        if ("${currentBlocks_list[0]}" != "") {
+            def dedupBlockList = services_list - currentBlocks_list
+            postBlockList += currentBlocks_list + dedupBlockList
+        } else {
+            postBlockList += services_list
+        }
+        postBlockList.remove("null")
+        logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
+
+        clientAttribs = formatMap()
+        clientAttribs.data.blocked_services = postBlockList
+        updateClient(clientAttribs)
     } else {
-        postBlockList += services_list
+        logError "No new services to block [${services_list.toString}]"
     }
-    logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
-
-    clientAttribs = formatMap()
-    clientAttribs.data.blocked_services = postBlockList
-    updateClient(clientAttribs)
 }
 
 def unblockService(services_string) {
     List<String> services_list = convertMapString(services_string)
-    logDebug "Unblocking ${services_list.size()} Service(s): ${services_list}..."
-    List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
-    logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
+    services_list.remove("null")
+    if(services_list.size() >= 1) {
+        logDebug "Unblocking ${services_list.size()} Service(s): ${services_list}..."
+        List<String> currentBlocks_list = convertMapString(device.currentValue("blockedServices"))
+        logDebug "Currently Blocking ${currentBlocks_list.size()} Services: ${currentBlocks_list}"
 
-    def postBlockList = currentBlocks_list - services_list
-    logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
+        def postBlockList = currentBlocks_list - services_list
+        logDebug "Setting ${postBlockList.size} Blocked Services: ${postBlockList}"
+        postBlockList.remove("null")
 
-    clientAttribs = formatMap()
-    clientAttribs.data.blocked_services = postBlockList
-    updateClient(clientAttribs)
+        clientAttribs = formatMap()
+        clientAttribs.data.blocked_services = postBlockList
+        updateClient(clientAttribs)
+    } else {
+        logError "No new services to unblock [${services_list.toString}]"
+    }
 }
-
 
 
 // General Functions
