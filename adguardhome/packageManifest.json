@@ -1,13 +1,13 @@
 {
   "packageName": "AdGuard Home DNS Manager (Unofficial)",
   "author": "JoKneeMo <https://github.com/JoKneeMo>",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "minimumHEVersion": "2.3.0",
   "dateReleased": "2023-01-07",
   "licenseFile": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/LICENSE",
   "documentationLink": "https://github.com/JoKneeMo/hubitat/blob/main/adguardhome/README.md",
   "communityLink": "https://community.hubitat.com/t/release-adguard-home-dns-server-and-client-manager",
-  "releaseNotes": "1.1.0 - [Driver-Server] Added ability to create a single client\n      - [Driver-Server] Fix \"null\" value from being added to block lists\n      - [Driver-Client] Fix \"null\" value from being added to block lists\n1.0.1 - [Driver-Server] Fix unsupported media type error\n1.0.0 - Initial public release\n0.1.0 - Initial alpha release",
+  "releaseNotes": "1.1.1 - [Driver-Server] Set attribute types to string because bool is not valid\n      - [Driver-Client] Set attribute types to string because bool is not valid\n1.1.0 - [Driver-Server] Added ability to create a single client\n      - [Driver-Server] Fix \"null\" value from being added to block lists\n      - [Driver-Client] Fix \"null\" value from being added to block lists\n1.0.1 - [Driver-Server] Fix unsupported media type error\n1.0.0 - Initial public release\n0.1.0 - Initial alpha release",
   "apps": [
     {
       "id": "02b5cb12-e41e-4a56-9989-e1e81162f26a",
@@ -27,7 +27,7 @@
       "namespace": "JoKneeMo",
       "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/drivers/AdGuardHome_Server.groovy",
       "required": true,
-      "version": "1.1.0"
+      "version": "1.1.1"
     },
     {
       "id": "8860f7f1-cbb2-4c08-b9e1-0a4d63bfa8bb",
@@ -35,7 +35,7 @@
       "namespace": "JoKneeMo",
       "location": "https://raw.githubusercontent.com/JoKneeMo/hubitat/main/adguardhome/drivers/AdGuardHome_Client.groovy",
       "required": false,
-      "version": "1.1.0"
+      "version": "1.1.1"
     }
   ]
 }

@@ -3,12 +3,13 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 1.1.0
+ *  Version: 1.1.1
 
 -------------------------------------------
 
 Change history:
 
+1.1.1 - JoKneeMo - Set attribute types to string because bool is not valid
 1.1.0 - JoKneeMo - Added ability to create a single client
                  - Fix "null" value from being added to block lists
 1.0.1 - JoKneeMo - Fix unsupported media type error
@@ -39,12 +40,12 @@ metadata {
         command "blockService", ["String"]
         command "unblockService", ["String"]
         attribute "version", "string"
-        attribute "protection", "bool"
-        attribute "filtering", "bool"
-        attribute "dhcp", "bool"
-        attribute "parental", "bool"
-        attribute "safeBrowsing", "bool"
-        attribute "safeSearch", "bool"
+        attribute "protection", "string"
+        attribute "filtering", "string"
+        attribute "dhcp", "string"
+        attribute "parental", "string"
+        attribute "safeBrowsing", "string"
+        attribute "safeSearch", "string"
         attribute "blockedServices", "string"
     }
 }

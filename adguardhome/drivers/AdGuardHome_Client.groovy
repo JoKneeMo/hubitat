@@ -3,12 +3,13 @@
  *  Author: JoKneeMo <https://github.com/JoKneeMo>
  *  Copyright: JoKneeMo <https://github.com/JoKneeMo>
  *  License: GPL-3.0-only
- *  Version: 1.1.0
+ *  Version: 1.1.1
 
 -------------------------------------------
 
 Change history:
 
+1.1.1 - JoKneeMo - Set attribute types to string because bool is not valid
 1.1.0 - JoKneeMo - Fix "null" value from being added to block lists
 1.0.0 - JoKneeMo - Initial release
 */
@@ -34,13 +35,13 @@ metadata {
         command "blockService", ["String"]
         command "unblockService", ["String"]
         attribute "name", "string"
-        attribute "filtering", "bool"
-        attribute "parental", "bool"
-        attribute "safeBrowsing", "bool"
-        attribute "safeSearch", "bool"
+        attribute "filtering", "string"
+        attribute "parental", "string"
+        attribute "safeBrowsing", "string"
+        attribute "safeSearch", "string"
         attribute "blockedServices", "string"
-        attribute "use_global_blocked_services", "bool"
-        attribute "use_global_settings", "bool"
+        attribute "use_global_blocked_services", "string"
+        attribute "use_global_settings", "string"
         attribute "clientIds", "string"
         attribute "clientTags", "string"
     }
