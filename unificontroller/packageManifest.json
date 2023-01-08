@@ -25,6 +25,7 @@
       "name": "UniFi Protect Controller",
       "namespace": "tomw",
       "location": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/unifiProtectController",
+      "licenseFile": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/LICENSE",
       "required": true
     },
     {
@@ -32,6 +33,7 @@
       "name": "UniFi Protect Camera",
       "namespace": "tomw",
       "location": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/unifiProtectCamera",
+      "licenseFile": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/LICENSE",
       "required": true
     },
     {
@@ -39,6 +41,15 @@
       "name": "UniFi Protect Doorbell",
       "namespace": "tomw",
       "location": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/unifiProtectDoorbell",
+      "licenseFile": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/LICENSE",
+      "required": true
+    },
+    {
+      "id": "edfa53bc-fe44-431a-aa75-1eda1620b80c",
+      "name": "UniFi Protect Light",
+      "namespace": "tomw",
+      "location": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/unifiProtectLight",
+      "licenseFile": "https://raw.githubusercontent.com/tomwpublic/hubitat_unifiProtect/main/LICENSE",
       "required": true
     }
   ]

@@ -152,7 +152,7 @@ def dashboardHelp() {
 
         section('<h3>Snapshots</h3>') {
             if (getControllerChildren(state.currentDeviceId).findAll { it.typeName == DEVICE_TYPES["camera"].driver }.size() == 0) {
-                paragraph("<b>There are no cameras devices on this UniFi controller.</b>")
+                paragraph("<b>There are no camera devices on this UniFi controller.</b>")
             }
             else {
                 paragraph(
@@ -406,5 +406,6 @@ def logTrace(msg) {
 @Field static def DEVICE_TYPES = [
     "UNIFI_API_DNI": [name: "UniFi Protect Controller", driver: "UniFi Protect Controller"],
     "camera": [name: "UniFi Protect Camera", driver: "UniFi Protect Camera"],
-    "doorbell": [name: "UniFi Protect Doorbell", driver: "UniFi Protect Doorbell"]
+    "doorbell": [name: "UniFi Protect Doorbell", driver: "UniFi Protect Doorbell"],
+    "light": [name: "UniFi Protect Light", driver: "UniFi Protect Light"]
 ]
